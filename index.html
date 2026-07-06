@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%97%93%EF%B8%8F%3C/text%3E%3C/svg%3E" />
@@ -27,7 +28,8 @@
   .field-row { display: flex; align-items: center; gap: 0.5rem; }
   .field-row .tilde { color: var(--muted-2); }
   input[type="date"],
-  input[type="number"] {
+  input[type="number"],
+  select {
     width: 100%;
     padding: 0.65rem 0.8rem;
     border-radius: 0.5rem;
@@ -36,11 +38,16 @@
     color: var(--text);
     font-size: 1rem;
   }
-  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  input[type="date"]:disabled {
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type="date"]:disabled, select:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
+  .date-select-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .date-select-row select { flex: 1; min-width: 0; }
 
   .toggle-row {
     display: flex;
@@ -143,6 +150,7 @@
         <a href="/about.html">소개</a>
         <a href="/contact.html">문의</a>
       </nav>
+      <button id="themeToggle" class="theme-toggle" aria-label="테마 전환"></button>
     </div>
   </header>
 
@@ -162,8 +170,12 @@
       <p class="subtitle">입사일 기준으로 발생한 연차 유급휴가를 계산합니다</p>
 
       <div class="field">
-        <label for="hireDate">입사일</label>
-        <input type="date" id="hireDate" />
+        <label>입사일</label>
+        <div class="date-select-row">
+          <select id="hireYear" aria-label="입사 연도"></select>
+          <select id="hireMonth" aria-label="입사 월"></select>
+          <select id="hireDay" aria-label="입사 일"></select>
+        </div>
       </div>
       <div class="field">
         <label for="usedDays">이미 사용한 연차 일수 (선택)</label>
@@ -375,6 +387,47 @@
     return { earned, cumulativeEarned, tenureLabel, leaveImpactLabel, breakdown };
   }
 
+  const hireYearSelect = document.getElementById("hireYear");
+  const hireMonthSelect = document.getElementById("hireMonth");
+  const hireDaySelect = document.getElementById("hireDay");
+
+  function fillSelect(select, placeholder, values, labelFn) {
+    const opts = ['<option value="">' + placeholder + '</option>'];
+    values.forEach(function (v) {
+      opts.push('<option value="' + v + '">' + labelFn(v) + '</option>');
+    });
+    select.innerHTML = opts.join("");
+  }
+
+  (function initHireDateSelects() {
+    const nowYear = new Date().getFullYear();
+    const years = [];
+    for (let y = nowYear; y >= nowYear - 60; y--) years.push(y);
+    fillSelect(hireYearSelect, "년", years, function (y) { return y + "년"; });
+
+    const months = [];
+    for (let m = 1; m <= 12; m++) months.push(m);
+    fillSelect(hireMonthSelect, "월", months, function (m) { return m + "월"; });
+
+    updateHireDayOptions();
+  })();
+
+  function updateHireDayOptions() {
+    const year = parseInt(hireYearSelect.value, 10);
+    const month = parseInt(hireMonthSelect.value, 10);
+    const prevDay = hireDaySelect.value;
+    const daysInMonth = (year && month) ? new Date(year, month, 0).getDate() : 31;
+    const days = [];
+    for (let d = 1; d <= daysInMonth; d++) days.push(d);
+    fillSelect(hireDaySelect, "일", days, function (d) { return d + "일"; });
+    if (prevDay && parseInt(prevDay, 10) <= daysInMonth) {
+      hireDaySelect.value = prevDay;
+    }
+  }
+
+  hireYearSelect.addEventListener("change", updateHireDayOptions);
+  hireMonthSelect.addEventListener("change", updateHireDayOptions);
+
   const leaveToggle = document.getElementById("leaveToggle");
   const leaveStartInput = document.getElementById("leaveStart");
   const leaveEndInput = document.getElementById("leaveEnd");
@@ -392,12 +445,14 @@
   });
 
   document.getElementById("calcBtn").addEventListener("click", function () {
-    const hireInput = document.getElementById("hireDate").value;
-    if (!hireInput) {
-      alert("입사일을 입력해 주세요.");
+    const hireYear = parseInt(hireYearSelect.value, 10);
+    const hireMonth = parseInt(hireMonthSelect.value, 10);
+    const hireDay = parseInt(hireDaySelect.value, 10);
+    if (!hireYear || !hireMonth || !hireDay) {
+      alert("입사일(년/월/일)을 모두 선택해 주세요.");
       return;
     }
-    const hireDate = new Date(hireInput);
+    const hireDate = new Date(hireYear, hireMonth - 1, hireDay);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     hireDate.setHours(0, 0, 0, 0);
@@ -464,5 +519,6 @@
     document.getElementById("result").classList.add("visible");
   });
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>
