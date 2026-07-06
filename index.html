@@ -78,8 +78,10 @@
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
   }
   button:hover { background: var(--accent-dark); }
+  button:active { transform: scale(0.98); }
 
   .result {
     margin-top: 1.75rem;
@@ -119,7 +121,11 @@
     font-size: 0.85rem;
     color: var(--accent);
     user-select: none;
+    list-style: none;
   }
+  .breakdown-details summary::-webkit-details-marker { display: none; }
+  .breakdown-details summary::before { content: "▸ "; }
+  .breakdown-details[open] summary::before { content: "▾ "; }
   .breakdown-table {
     width: 100%;
     border-collapse: collapse;
@@ -130,7 +136,7 @@
     padding: 0.4rem 0.25rem;
     border-bottom: 1px solid var(--border);
   }
-  .breakdown-table td:last-child { text-align: right; font-weight: 600; }
+  .breakdown-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
   .breakdown-note {
     display: block;
     font-size: 0.72rem;

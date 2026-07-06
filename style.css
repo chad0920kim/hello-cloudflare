@@ -22,7 +22,7 @@
     --muted-2: #64748b;
     --accent: #0284c7;
     --accent-dark: #0369a1;
-    --shadow: rgba(15, 23, 42, 0.08);
+    --shadow: rgba(15, 23, 42, 0.06);
   }
 }
 
@@ -35,7 +35,7 @@
   --muted-2: #64748b;
   --accent: #0284c7;
   --accent-dark: #0369a1;
-  --shadow: rgba(15, 23, 42, 0.08);
+  --shadow: rgba(15, 23, 42, 0.06);
 }
 
 :root[data-theme="dark"] {
@@ -54,17 +54,32 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
   line-height: 1.6;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 a { color: var(--accent); }
-a:hover { color: var(--accent-dark); }
+a:hover { color: var(--accent-dark); text-decoration: underline; text-underline-offset: 0.18em; }
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   border-bottom: 1px solid var(--border);
   background: var(--card);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .site-header .inner {
   max-width: 840px;
@@ -121,7 +136,7 @@ main {
   padding: 2.5rem 1.5rem 3rem;
 }
 
-.page-title { font-size: 1.75rem; margin: 0 0 0.5rem; }
+.page-title { font-size: 1.75rem; line-height: 1.25; margin: 0 0 0.5rem; }
 .page-lead { color: var(--muted); margin: 0 0 2rem; }
 
 article h2 { font-size: 1.25rem; margin-top: 2rem; }
@@ -131,7 +146,8 @@ article ul, article ol { padding-left: 1.25rem; }
 
 .card {
   padding: 1.5rem 1.75rem;
-  border-radius: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
   background: var(--card);
   box-shadow: 0 10px 30px var(--shadow);
   margin-bottom: 1.5rem;
@@ -144,9 +160,13 @@ article ul, article ol { padding-left: 1.25rem; }
   font-size: 0.92rem;
 }
 .guide-table th, .guide-table td {
-  padding: 0.5rem 0.25rem;
+  padding: 0.65rem 0.5rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
+}
+.guide-table th:last-child, .guide-table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .guide-table tbody tr:last-child td { border-bottom: none; }
 
@@ -182,9 +202,16 @@ article ul, article ol { padding-left: 1.25rem; }
 }
 
 @media (max-width: 640px) {
-  .site-header .inner { padding: 0.85rem 1rem; }
+  .site-header .inner { padding: 0.85rem 1rem; flex-wrap: nowrap; }
   .brand { font-size: 1rem; }
-  .site-nav { gap: 0.85rem; font-size: 0.82rem; }
+  .site-nav {
+    gap: 0.85rem;
+    font-size: 0.82rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .site-nav::-webkit-scrollbar { display: none; }
   main { padding: 1.75rem 1rem 2.25rem; }
   .page-title { font-size: 1.4rem; }
   .card { padding: 1.25rem 1.1rem; }
