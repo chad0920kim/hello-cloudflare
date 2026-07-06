@@ -3,33 +3,187 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Hello Cloudflare</title>
+<title>연차 계산기</title>
 <style>
+  * { box-sizing: border-box; }
   body {
     margin: 0;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem 1rem;
     background: #0f172a;
     color: #e2e8f0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   .card {
-    text-align: center;
-    padding: 3rem 4rem;
+    width: 100%;
+    max-width: 480px;
+    padding: 2.5rem;
     border-radius: 1rem;
     background: #1e293b;
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   }
-  h1 { margin: 0 0 0.5rem; font-size: 2rem; }
-  p { margin: 0; color: #94a3b8; }
+  h1 { margin: 0 0 0.25rem; font-size: 1.5rem; text-align: center; }
+  .subtitle { margin: 0 0 2rem; color: #94a3b8; text-align: center; font-size: 0.9rem; }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 0.4rem;
+  }
+  .field { margin-bottom: 1.25rem; }
+  input[type="date"],
+  input[type="number"] {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.5rem;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 1rem;
+  }
+  input:focus { outline: 2px solid #38bdf8; outline-offset: 1px; }
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #38bdf8;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: #0ea5e9; }
+
+  .result {
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #334155;
+    display: none;
+  }
+  .result.visible { display: block; }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    font-size: 0.95rem;
+  }
+  .result-row .label { color: #94a3b8; }
+  .result-row .value { font-weight: 600; }
+  .result-row.total .value { color: #38bdf8; font-size: 1.3rem; }
+
+  .note {
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>Hello, Cloudflare Pages 👋</h1>
-    <p>테스트용 간단 페이지입니다.</p>
+    <h1>연차 계산기 🗓️</h1>
+    <p class="subtitle">입사일 기준으로 발생한 연차 유급휴가를 계산합니다</p>
+
+    <div class="field">
+      <label for="hireDate">입사일</label>
+      <input type="date" id="hireDate" />
+    </div>
+    <div class="field">
+      <label for="usedDays">이미 사용한 연차 일수 (선택)</label>
+      <input type="number" id="usedDays" min="0" step="0.5" value="0" />
+    </div>
+    <button id="calcBtn">계산하기</button>
+
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="label">근속 기간</span>
+        <span class="value" id="tenure"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">발생 연차</span>
+        <span class="value" id="earned"></span>
+      </div>
+      <div class="result-row">
+        <span class="label">사용 연차</span>
+        <span class="value" id="used"></span>
+      </div>
+      <div class="result-row total">
+        <span class="label">잔여 연차</span>
+        <span class="value" id="remaining"></span>
+      </div>
+    </div>
+
+    <p class="note">
+      근로기준법 기준: 입사 1년 미만은 매월 개근 시 1일(최대 11일),
+      1년 이상은 15일에 최초 1년 초과 매 2년마다 1일 가산(최대 25일)하여 계산합니다.
+      회사 내부 규정에 따라 실제 발생일수는 다를 수 있습니다.
+    </p>
   </div>
+
+<script>
+  function calcAnnualLeave(hireDate, today) {
+    if (today < hireDate) return null;
+
+    let years = today.getFullYear() - hireDate.getFullYear();
+    let anniversary = new Date(hireDate);
+    anniversary.setFullYear(hireDate.getFullYear() + years);
+    if (anniversary > today) {
+      years -= 1;
+      anniversary.setFullYear(hireDate.getFullYear() + years);
+    }
+
+    let months = (today.getFullYear() - hireDate.getFullYear()) * 12 +
+                 (today.getMonth() - hireDate.getMonth());
+    if (today.getDate() < hireDate.getDate()) months -= 1;
+
+    let earned;
+    let tenureLabel;
+
+    if (years < 1) {
+      earned = Math.min(Math.max(months, 0), 11);
+      tenureLabel = months + "개월";
+    } else {
+      const bonus = Math.floor((years - 1) / 2);
+      earned = Math.min(15 + bonus, 25);
+      const remMonths = months - years * 12;
+      tenureLabel = years + "년 " + remMonths + "개월";
+    }
+
+    return { earned, tenureLabel };
+  }
+
+  document.getElementById("calcBtn").addEventListener("click", function () {
+    const hireInput = document.getElementById("hireDate").value;
+    if (!hireInput) {
+      alert("입사일을 입력해 주세요.");
+      return;
+    }
+    const hireDate = new Date(hireInput);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    hireDate.setHours(0, 0, 0, 0);
+
+    const result = calcAnnualLeave(hireDate, today);
+    if (!result) {
+      alert("입사일은 오늘 이전 날짜여야 합니다.");
+      return;
+    }
+
+    const used = parseFloat(document.getElementById("usedDays").value) || 0;
+    const remaining = Math.max(result.earned - used, 0);
+
+    document.getElementById("tenure").textContent = result.tenureLabel;
+    document.getElementById("earned").textContent = result.earned + "일";
+    document.getElementById("used").textContent = used + "일";
+    document.getElementById("remaining").textContent = remaining + "일";
+    document.getElementById("result").classList.add("visible");
+  });
+</script>
 </body>
 </html>
