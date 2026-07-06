@@ -37,6 +37,29 @@
     font-size: 1rem;
   }
   input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type="date"]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+  }
+  .toggle-row input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .toggle-row span {
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+  .field-row.disabled { opacity: 0.55; }
 
   button {
     width: 100%;
@@ -118,11 +141,14 @@
         <input type="number" id="usedDays" min="0" step="0.5" value="0" />
       </div>
       <div class="field-group">
-        <label>무급휴직 기간 (선택)</label>
-        <div class="field-row">
-          <input type="date" id="leaveStart" aria-label="무급휴직 시작일" />
+        <label class="toggle-row" for="leaveToggle">
+          <input type="checkbox" id="leaveToggle" />
+          <span>무급휴직 기간을 반영할게요</span>
+        </label>
+        <div class="field-row disabled" id="leaveFieldRow">
+          <input type="date" id="leaveStart" aria-label="무급휴직 시작일" disabled />
           <span class="tilde">~</span>
-          <input type="date" id="leaveEnd" aria-label="무급휴직 종료일" />
+          <input type="date" id="leaveEnd" aria-label="무급휴직 종료일" disabled />
         </div>
       </div>
       <button id="calcBtn">계산하기</button>
@@ -263,6 +289,22 @@
     return { earned, tenureLabel, leaveImpactLabel };
   }
 
+  const leaveToggle = document.getElementById("leaveToggle");
+  const leaveStartInput = document.getElementById("leaveStart");
+  const leaveEndInput = document.getElementById("leaveEnd");
+  const leaveFieldRow = document.getElementById("leaveFieldRow");
+
+  leaveToggle.addEventListener("change", function () {
+    const enabled = leaveToggle.checked;
+    leaveStartInput.disabled = !enabled;
+    leaveEndInput.disabled = !enabled;
+    leaveFieldRow.classList.toggle("disabled", !enabled);
+    if (!enabled) {
+      leaveStartInput.value = "";
+      leaveEndInput.value = "";
+    }
+  });
+
   document.getElementById("calcBtn").addEventListener("click", function () {
     const hireInput = document.getElementById("hireDate").value;
     if (!hireInput) {
@@ -274,13 +316,15 @@
     today.setHours(0, 0, 0, 0);
     hireDate.setHours(0, 0, 0, 0);
 
-    const leaveStartInput = document.getElementById("leaveStart").value;
-    const leaveEndInput = document.getElementById("leaveEnd").value;
     let leaveStart = null;
     let leaveEnd = null;
-    if (leaveStartInput && leaveEndInput) {
-      leaveStart = new Date(leaveStartInput);
-      leaveEnd = new Date(leaveEndInput);
+    if (leaveToggle.checked) {
+      if (!leaveStartInput.value || !leaveEndInput.value) {
+        alert("무급휴직 시작일과 종료일을 모두 입력해 주세요.");
+        return;
+      }
+      leaveStart = new Date(leaveStartInput.value);
+      leaveEnd = new Date(leaveEndInput.value);
       leaveStart.setHours(0, 0, 0, 0);
       leaveEnd.setHours(0, 0, 0, 0);
       if (leaveEnd <= leaveStart) {
