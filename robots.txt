@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hello-cloudflare-5zh.pages.dev/sitemap.xml
+Sitemap: https://annual-leave-calculator.pages.dev/sitemap.xml
