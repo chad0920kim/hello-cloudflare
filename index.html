@@ -35,6 +35,9 @@
     margin-bottom: 0.4rem;
   }
   .field { margin-bottom: 1.25rem; }
+  .field-group { margin-bottom: 1.25rem; }
+  .field-row { display: flex; align-items: center; gap: 0.5rem; }
+  .field-row .tilde { color: #64748b; }
   input[type="date"],
   input[type="number"] {
     width: 100%;
@@ -98,12 +101,24 @@
       <label for="usedDays">이미 사용한 연차 일수 (선택)</label>
       <input type="number" id="usedDays" min="0" step="0.5" value="0" />
     </div>
+    <div class="field-group">
+      <label>무급휴직 기간 (선택)</label>
+      <div class="field-row">
+        <input type="date" id="leaveStart" aria-label="무급휴직 시작일" />
+        <span class="tilde">~</span>
+        <input type="date" id="leaveEnd" aria-label="무급휴직 종료일" />
+      </div>
+    </div>
     <button id="calcBtn">계산하기</button>
 
     <div class="result" id="result">
       <div class="result-row">
         <span class="label">근속 기간</span>
         <span class="value" id="tenure"></span>
+      </div>
+      <div class="result-row" id="leaveRow" style="display:none;">
+        <span class="label">무급휴직 반영</span>
+        <span class="value" id="leaveImpact"></span>
       </div>
       <div class="result-row">
         <span class="label">발생 연차</span>
@@ -122,12 +137,40 @@
     <p class="note">
       근로기준법 기준: 입사 1년 미만은 매월 개근 시 1일(최대 11일),
       1년 이상은 15일에 최초 1년 초과 매 2년마다 1일 가산(최대 25일)하여 계산합니다.
-      회사 내부 규정에 따라 실제 발생일수는 다를 수 있습니다.
+      무급휴직 기간은, 1년 미만 구간에서는 휴직이 걸친 달을 개근하지 않은 것으로 보아 그 달의 1일을 제외하고,
+      1년 이상 구간에서는 현재 연차를 발생시킨 산정기간(직전 1년) 중 휴직이 차지하는 비율만큼 발생일수를 비례 차감하는 방식(근사치)으로 반영합니다.
+      회사 내부 규정 및 실제 판례 해석에 따라 결과가 달라질 수 있으니 참고용으로만 사용하세요.
     </p>
   </div>
 
 <script>
-  function calcAnnualLeave(hireDate, today) {
+  const MS_PER_DAY = 86400000;
+
+  function addMonths(date, n) {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + n);
+    return d;
+  }
+
+  function addYears(date, n) {
+    const d = new Date(date);
+    d.setFullYear(d.getFullYear() + n);
+    return d;
+  }
+
+  function daysBetween(a, b) {
+    return Math.round((b - a) / MS_PER_DAY);
+  }
+
+  // Overlap in days between [aStart, aEnd) and [bStart, bEnd), or 0 if no overlap.
+  function overlapDays(aStart, aEnd, bStart, bEnd) {
+    const start = aStart > bStart ? aStart : bStart;
+    const end = aEnd < bEnd ? aEnd : bEnd;
+    if (start >= end) return 0;
+    return daysBetween(start, end);
+  }
+
+  function calcAnnualLeave(hireDate, today, leaveStart, leaveEnd) {
     if (today < hireDate) return null;
 
     let years = today.getFullYear() - hireDate.getFullYear();
@@ -142,20 +185,52 @@
                  (today.getMonth() - hireDate.getMonth());
     if (today.getDate() < hireDate.getDate()) months -= 1;
 
+    const hasLeave = leaveStart && leaveEnd && leaveEnd > leaveStart;
     let earned;
     let tenureLabel;
+    let leaveImpactLabel = null;
 
     if (years < 1) {
-      earned = Math.min(Math.max(months, 0), 11);
+      // 1년 미만: 무급휴직이 걸친 달은 개근하지 않은 것으로 보아 그 달의 1일을 제외
+      let countedMonths = 0;
+      let excludedMonths = 0;
+      for (let i = 0; i < months; i++) {
+        const mStart = addMonths(hireDate, i);
+        const mEnd = addMonths(hireDate, i + 1);
+        if (hasLeave && overlapDays(mStart, mEnd, leaveStart, leaveEnd) > 0) {
+          excludedMonths++;
+        } else {
+          countedMonths++;
+        }
+      }
+      earned = Math.min(countedMonths, 11);
       tenureLabel = months + "개월";
+      if (excludedMonths > 0) {
+        leaveImpactLabel = "휴직 포함 " + excludedMonths + "개월 미개근 처리";
+      }
     } else {
       const bonus = Math.floor((years - 1) / 2);
-      earned = Math.min(15 + bonus, 25);
+      const baseEarned = Math.min(15 + bonus, 25);
       const remMonths = months - years * 12;
       tenureLabel = years + "년 " + remMonths + "개월";
+
+      // 1년 이상: 현재 발생일수를 산정한 직전 1년 구간(anniversary - 1년 ~ anniversary) 중
+      // 휴직이 차지하는 비율만큼 비례 차감 (근사치)
+      const qualStart = addYears(hireDate, years - 1);
+      const qualEnd = anniversary;
+      const qualTotalDays = daysBetween(qualStart, qualEnd);
+      const overlap = hasLeave ? overlapDays(qualStart, qualEnd, leaveStart, leaveEnd) : 0;
+
+      if (overlap > 0) {
+        const ratio = overlap / qualTotalDays;
+        earned = Math.max(Math.round(baseEarned * (1 - ratio)), 0);
+        leaveImpactLabel = "휴직 " + overlap + "일 반영 → " + baseEarned + "일 → " + earned + "일";
+      } else {
+        earned = baseEarned;
+      }
     }
 
-    return { earned, tenureLabel };
+    return { earned, tenureLabel, leaveImpactLabel };
   }
 
   document.getElementById("calcBtn").addEventListener("click", function () {
@@ -169,7 +244,22 @@
     today.setHours(0, 0, 0, 0);
     hireDate.setHours(0, 0, 0, 0);
 
-    const result = calcAnnualLeave(hireDate, today);
+    const leaveStartInput = document.getElementById("leaveStart").value;
+    const leaveEndInput = document.getElementById("leaveEnd").value;
+    let leaveStart = null;
+    let leaveEnd = null;
+    if (leaveStartInput && leaveEndInput) {
+      leaveStart = new Date(leaveStartInput);
+      leaveEnd = new Date(leaveEndInput);
+      leaveStart.setHours(0, 0, 0, 0);
+      leaveEnd.setHours(0, 0, 0, 0);
+      if (leaveEnd <= leaveStart) {
+        alert("무급휴직 종료일은 시작일 이후여야 합니다.");
+        return;
+      }
+    }
+
+    const result = calcAnnualLeave(hireDate, today, leaveStart, leaveEnd);
     if (!result) {
       alert("입사일은 오늘 이전 날짜여야 합니다.");
       return;
@@ -182,6 +272,15 @@
     document.getElementById("earned").textContent = result.earned + "일";
     document.getElementById("used").textContent = used + "일";
     document.getElementById("remaining").textContent = remaining + "일";
+
+    const leaveRow = document.getElementById("leaveRow");
+    if (result.leaveImpactLabel) {
+      document.getElementById("leaveImpact").textContent = result.leaveImpactLabel;
+      leaveRow.style.display = "flex";
+    } else {
+      leaveRow.style.display = "none";
+    }
+
     document.getElementById("result").classList.add("visible");
   });
 </script>
