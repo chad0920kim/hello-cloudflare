@@ -9,6 +9,56 @@
 <meta name="description" content="연차휴가와 관련된 실제 사례, 자주 헷갈리는 노무 상식을 지속적으로 정리하는 코너입니다." />
 <link rel="canonical" href="https://annual-leave-calculator.pages.dev/blog/" />
 <link rel="stylesheet" href="/style.css" />
+<style>
+  .blog-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+  .blog-search {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+  }
+  .blog-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .category-chip {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .category-chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  }
+  .post-count {
+    font-size: 0.82rem;
+    color: var(--muted-2);
+    margin: 0 0 1rem;
+  }
+  .no-results {
+    color: var(--muted);
+    padding: 2rem 0;
+    text-align: center;
+    display: none;
+  }
+  .no-results.visible { display: block; }
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -28,78 +78,22 @@
   <main>
     <h1 class="page-title">연차 이야기</h1>
     <p class="page-lead">
-      연차휴가를 둘러싼 실제 사례와 자주 헷갈리는 노무 상식을 계속 정리해서
+      연차휴가를 둘러싼 실제 사례와 자주 헷갈리는 노무 상식을 매주 정리해서
       올리는 코너입니다. 궁금한 상황이 있다면 <a href="/contact.html">문의</a>로
       보내주세요. 다음 글의 소재가 될 수 있습니다.
     </p>
 
-    <ul style="list-style:none; padding:0;">
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/rejected-leave-request-response.html">열심히 일해서 연차 올렸는데 반려당했다면? 법적 대응 매뉴얼</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.07.07</p>
-        <p style="margin:0;">회사가 정당한 이유 없이 연차 신청을 반려할 때 확인해야 할 법적 기준과 대응 방법.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/half-day-leave-system-differences.html">반차, 반반차, 심지어 시간 단위 휴가까지... 회사마다 다른 이유</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.07.05</p>
-        <p style="margin:0;">반차와 반반차 제도가 회사마다 다르게 운영되는 이유를 알아봅니다.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/parental-leave-return-annual-leave.html">1년 육아휴직 후 복직, 내 연차가 0개라고요?</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.07.03</p>
-        <p style="margin:0;">육아휴직 후 복직자의 연차휴가가 어떻게 산정되는지 실제 사례로 알아봅니다.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/resign-with-leave-or-cash.html">연차 다 쓰고 퇴사하기 vs 수당으로 받기, 뭐가 진짜 이득일까?</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.07.01</p>
-        <p style="margin:0;">퇴사를 앞두고 남은 연차를 소진할지 수당으로 받을지 고민될 때 따져봐야 할 것들.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/remote-work-leave-culture.html">재택근무 시대, 왜 우리는 오히려 연차를 더 안 쓰게 되었을까</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.29</p>
-        <p style="margin:0;">재택근무가 늘면서 오히려 연차 사용률이 떨어진 이유와 필요한 마음가짐.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/part-timer-annual-leave.html">편의점, 카페 알바생도 연차가 있다는 사실을 아시나요?</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.25</p>
-        <p style="margin:0;">주 15시간 이상, 5인 이상 사업장이면 아르바이트생에게도 연차휴가가 발생합니다.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/freelancer-contract-worker-leave.html">프리랜서와 계약직의 연차, 법적으로 어떻게 다를까?</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.22</p>
-        <p style="margin:0;">계약서 형식이 아니라 실질 근로 형태에 따라 달라지는 연차휴가 권리.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/how-to-handle-boss-pressure.html">"요즘 바쁜데 꼭 가야 해?" 상사의 은근한 연차 반려 대처법</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.18</p>
-        <p style="margin:0;">상사가 연차 사용을 은근히 압박할 때 실제로 통했던 대처법.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/europe-trip-with-9-days-off.html">연차 9개 끌어모아 다녀온 2주간의 유럽 탈출기</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.15</p>
-        <p style="margin:0;">연차를 몰아 붙여 2주간 장기 휴가를 다녀온 4년 차 대리의 준비 과정과 후기.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/first-half-day-off-story.html">입사 3개월 차 신입, 반차 올리던 날의 심장 박동수</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.11</p>
-        <p style="margin:0;">신입사원이 처음으로 반차를 결재 올리던 날의 경험담.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/leave-encouragement-system.html">연차 사용촉진, 회사가 이걸 안 하면 수당을 받을 수 있어요</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.08</p>
-        <p style="margin:0;">연차수당을 안 주려면 회사가 반드시 지켜야 하는 절차가 있습니다. 이 절차가 지켜지지 않았다면 어떻게 될까요?</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/unpaid-leave-case-study.html">무급휴직 다녀왔더니 연차가 줄었어요 - 실제 사례로 보는 계산</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.04</p>
-        <p style="margin:0;">3개월 무급휴직 후 복직한 근로자의 실제 연차 계산 과정을 단계별로 따라가 봅니다.</p>
-      </li>
-      <li class="card">
-        <h2 style="margin-top:0;"><a href="/blog/hire-date-vs-fiscal-year.html">연차 개수, 회사마다 왜 다르게 보일까? (입사일 vs 회계연도 기준)</a></h2>
-        <p style="color: var(--muted); margin-bottom:0.25rem;">2026.06.01</p>
-        <p style="margin:0;">같은 근속 3년차인데 옆 회사 동기와 연차 개수가 다른 이유. 입사일 기준과 회계연도 기준의 차이를 실제 숫자로 비교합니다.</p>
-      </li>
-    </ul>  </main>
+    <div class="blog-controls">
+      <input type="text" id="blogSearch" class="blog-search" placeholder="제목이나 내용으로 검색 (예: 무급휴직, 퇴사, 알바)" />
+      <div class="category-chips" id="categoryChips">
+        <button type="button" class="category-chip active" data-category="all">전체</button>
+      </div>
+    </div>
+
+    <p class="post-count" id="postCount"></p>
+    <ul id="postList" style="list-style:none; padding:0;"></ul>
+    <p class="no-results" id="noResults">조건에 맞는 글이 없습니다. 검색어나 카테고리를 바꿔보세요.</p>
+  </main>
 
   <footer class="site-footer">
     <nav>
@@ -111,5 +105,74 @@
     <p>&copy; 2026 직장인 연차 계산기. 본 사이트의 계산 결과는 참고용이며 법적 효력이 없습니다.</p>
   </footer>
 <script src="/theme.js"></script>
+<script>
+  let allPosts = [];
+  let activeCategory = "all";
+
+  function formatDate(iso) {
+    return iso.replace(/-/g, ".");
+  }
+
+  function render() {
+    const query = document.getElementById("blogSearch").value.trim().toLowerCase();
+    const filtered = allPosts.filter(function (p) {
+      const matchesCategory = activeCategory === "all" || p.category === activeCategory;
+      const matchesQuery = !query ||
+        p.title.toLowerCase().includes(query) ||
+        p.summary.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query);
+      return matchesCategory && matchesQuery;
+    });
+
+    const list = document.getElementById("postList");
+    list.innerHTML = filtered.map(function (p) {
+      return '<li class="card">' +
+        '<span class="post-category-badge">' + p.category + '</span>' +
+        '<h2 style="margin-top:0;"><a href="/blog/' + p.slug + '.html">' + p.title + '</a></h2>' +
+        '<p style="color: var(--muted); margin-bottom:0.25rem;">' + formatDate(p.date) + '</p>' +
+        '<p style="margin:0;">' + p.summary + '</p>' +
+        '</li>';
+    }).join("");
+
+    document.getElementById("postCount").textContent = "전체 " + allPosts.length + "편 중 " + filtered.length + "편 표시";
+    document.getElementById("noResults").classList.toggle("visible", filtered.length === 0);
+  }
+
+  function buildCategoryChips() {
+    const categories = Array.from(new Set(allPosts.map(function (p) { return p.category; })));
+    const container = document.getElementById("categoryChips");
+    categories.forEach(function (cat) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "category-chip";
+      btn.dataset.category = cat;
+      btn.textContent = cat;
+      container.appendChild(btn);
+    });
+
+    container.addEventListener("click", function (e) {
+      const btn = e.target.closest(".category-chip");
+      if (!btn) return;
+      activeCategory = btn.dataset.category;
+      container.querySelectorAll(".category-chip").forEach(function (b) {
+        b.classList.toggle("active", b === btn);
+      });
+      render();
+    });
+  }
+
+  fetch("/blog/posts.json")
+    .then(function (res) { return res.json(); })
+    .then(function (posts) {
+      allPosts = posts.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+      buildCategoryChips();
+      render();
+    })
+    .catch(function () {
+      document.getElementById("postList").innerHTML = "<li>글 목록을 불러오지 못했습니다.</li>";
+    });
+
+  document.getElementById("blogSearch").addEventListener("input", render);
+</script>
 </body>
 </html>

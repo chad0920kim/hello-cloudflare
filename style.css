@@ -198,6 +198,16 @@ article ul, article ol { padding-left: 1.25rem; }
 .site-footer nav a { color: var(--muted); text-decoration: none; }
 .site-footer nav a:hover { color: var(--accent); }
 
+.post-category-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
 .ad-slot {
   margin: 2rem 0;
   padding: 0.75rem;
