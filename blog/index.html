@@ -75,6 +75,23 @@
     display: none;
   }
   .no-results.visible { display: block; }
+
+  .post-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .post-thumb {
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+  .post-list-content { min-width: 0; }
+  @media (max-width: 480px) {
+    .post-thumb { width: 64px; height: 64px; }
+  }
 </style>
 </head>
 <body>
@@ -143,11 +160,17 @@
 
     const list = document.getElementById("postList");
     list.innerHTML = filtered.map(function (p) {
-      return '<li class="card">' +
+      const thumb = p.image
+        ? '<img class="post-thumb" src="' + p.image + '" alt="" loading="lazy" />'
+        : '';
+      return '<li class="card post-list-item">' +
+        thumb +
+        '<div class="post-list-content">' +
         '<span class="post-category-badge">' + p.category + '</span>' +
         '<h2 style="margin-top:0;"><a href="/blog/' + p.slug + '.html">' + p.title + '</a></h2>' +
         '<p style="color: var(--muted); margin-bottom:0.25rem;">' + formatDate(p.date) + '</p>' +
         '<p style="margin:0;">' + p.summary + '</p>' +
+        '</div>' +
         '</li>';
     }).join("");
 
