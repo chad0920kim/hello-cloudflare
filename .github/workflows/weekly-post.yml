@@ -1,0 +1,39 @@
+name: Weekly blog post
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # every Monday 00:00 UTC = 09:00 KST
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate post via Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 scripts/generate_post.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "annual-leave-bot"
+          git config user.email "actions@github.com"
+          git add blog/ sitemap.xml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          SLUG=$(git diff --cached --name-only -- 'blog/*.html' | head -n1 | xargs -I{} basename {} .html)
+          git commit -m "Add weekly blog post: ${SLUG}"
+          git push
