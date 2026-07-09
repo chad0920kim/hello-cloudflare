@@ -118,13 +118,17 @@ def slugify_fallback(title, used_slugs):
 
 
 def pick_image(posts):
-    pool = []
-    for p in posts:
-        if p["image"] not in pool:
-            pool.append(p["image"])
-    if not pool:
-        pool = ["https://images.pexels.com/photos/5408818/pexels-photo-5408818.jpeg?auto=compress&cs=tinysrgb&w=1200"]
-    return pool[len(posts) % len(pool)]
+    # posts is newest-first. For each image, record the smallest index it
+    # appears at (its most recent use). Pick the image whose most recent
+    # use is furthest back, so it never collides with the post right above it.
+    last_used_index = {}
+    for idx, p in enumerate(posts):
+        img = p["image"]
+        if img not in last_used_index:
+            last_used_index[img] = idx
+    if not last_used_index:
+        return "https://images.pexels.com/photos/5408818/pexels-photo-5408818.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    return max(last_used_index, key=last_used_index.get)
 
 
 def format_inline(text):
